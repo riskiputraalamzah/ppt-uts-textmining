@@ -280,6 +280,8 @@
       align-items: center;
       flex-direction: column;
       transition: opacity 0.8s ease;
+      padding: 20px;
+      text-align: center;
     }
 
     #start-overlay.hidden {
@@ -287,8 +289,42 @@
       pointer-events: none;
     }
 
+    #start-overlay h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+
+    #start-overlay p {
+      margin-bottom: 40px;
+      color: var(--accent);
+      font-size: 1.2rem;
+    }
+
+    #start-overlay .btn {
+      font-size: 1.5rem;
+      padding: 20px 40px;
+    }
+
     /* Responsive Design */
     @media (max-width: 768px) {
+
+      /* Overlay Responsive */
+      #start-overlay h1 {
+        font-size: 2rem;
+      }
+
+      #start-overlay p {
+        font-size: 1rem;
+        margin-bottom: 30px;
+      }
+
+      #start-overlay .btn {
+        font-size: 1.1rem;
+        padding: 15px 30px;
+        width: auto;
+      }
+
       h1 {
         font-size: 2.5rem;
       }
@@ -313,20 +349,14 @@
       .slide {
         width: 90%;
         height: 90%;
-        /* Memberi ruang agar tidak terlalu mepet */
         padding: 20px 0;
         overflow-y: auto;
-        /* Scrollable jika konten panjang */
         justify-content: flex-start;
-        /* Mulai dari atas */
         display: block;
-        /* Mengubah flex menjadi block agar scroll berfungsi baik */
       }
 
-      /* Wrapper untuk konten di dalam slide agar rapi saat di-scroll */
       .slide>div {
         padding-bottom: 80px;
-        /* Ruang untuk tombol navigasi di bawah */
       }
 
       .content-left {
@@ -361,13 +391,13 @@
 <body>
   <!-- Start Overlay -->
   <div id="start-overlay">
-    <h1 style="font-size: 3rem; text-align: center; margin-bottom: 20px">
+    <h1>
       Presentasi Kelompok 6
     </h1>
-    <p style="margin-bottom: 40px; color: var(--accent)">
+    <p>
       Analisis Sentimen Clinelle
     </p>
-    <button class="btn" id="startBtn" style="font-size: 1.5rem; padding: 20px 40px">
+    <button class="btn" id="startBtn">
       <i class="fas fa-play"></i> Mulai Presentasi
     </button>
   </div>
