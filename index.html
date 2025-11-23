@@ -247,9 +247,13 @@
       ul.check-list li {
         margin-bottom: 15px;
         display: flex;
-        flex-wrap: wrap;
+
         align-items: flex-start;
         gap: 10px;
+      }
+
+      .wrap.check-list li {
+        flex-wrap: wrap;
       }
       ul.check-list li i {
         color: var(--accent);
@@ -432,7 +436,7 @@
               Script scraper dijalankan di Google Colab menggunakan library
               <code>requests</code>.
             </p>
-            <ul class="check-list" style="margin-top: 20px">
+            <ul class="check-list wrap" style="margin-top: 20px">
               <li>
                 <i class="fas fa-code"></i>
                 <strong>Payload GraphQL:</strong>
@@ -521,20 +525,25 @@
         <div class="grid-2">
           <div class="card">
             <h3>Tahapan Pembersihan</h3>
-            <ul class="check-list" style="margin-top: 15px">
+            <ul class="check-list wrap" style="margin-top: 15px">
               <li>
-                <strong>1. Case Folding:</strong> Mengubah ke huruf kecil.
+                <strong>1. Case Folding:</strong>
+                <p>Mengubah ke huruf kecil.</p>
               </li>
               <li>
-                <strong>2. Cleaning:</strong> Hapus simbol, emoji, dan angka.
+                <strong>2. Cleaning:</strong>
+                <p>Hapus simbol, emoji, dan angka.</p>
               </li>
               <li>
-                <strong>3. Normalization:</strong> Menggunakan
-                <em>Kamus Alay</em> untuk membakukan kata (cth: "bgt" ->
-                "sangat").
+                <strong>3. Normalization:</strong>
+                <p>
+                  Menggunakan <em>Kamus Alay</em> untuk membakukan kata (cth:
+                  "bgt" -> "sangat").
+                </p>
               </li>
               <li>
-                <strong>4. Stemming:</strong> Mengubah ke kata dasar (Sastrawi).
+                <strong>4. Stemming:</strong>
+                <p>Mengubah ke kata dasar (Sastrawi).</p>
               </li>
             </ul>
           </div>
