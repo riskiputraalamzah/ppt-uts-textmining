@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analisis Sentimen Clinelle - Kelompok 6</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary: #2563eb; /* Biru Profesional */
+        --accent: #06b6d4; /* Cyan Modern */
+        --dark: #0f172a; /* Navy Gelap */
+        --light: #f8fafc;
+        --glass: rgba(255, 255, 255, 0.1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Outfit", sans-serif;
+      }
+
+      body {
+        background-color: var(--dark);
+        color: var(--light);
+        overflow: hidden; /* Mencegah scrollbar */
+        height: 100vh;
+        width: 100vw;
+      }
+
+      /* Latar Belakang Animasi */
+      .background-animation {
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        top: -50%;
+        left: -50%;
+        background: radial-gradient(
+          circle,
+          rgba(37, 99, 235, 0.15) 0%,
+          rgba(15, 23, 42, 1) 70%
+        );
+        z-index: -1;
+        animation: rotate 60s linear infinite;
+      }
+
+      @keyframes rotate {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Container Slide */
+      .slider-container {
+        position: relative;
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .slide {
+        position: absolute;
+        width: 90%;
+        max-width: 1280px;
+        height: 85%;
+        opacity: 0;
+        transform: scale(0.95) translateY(30px);
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .slide.active {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        pointer-events: all;
+        z-index: 10;
+      }
+
+      /* Typography & Layouts */
+      h1 {
+        font-size: 4rem;
+        line-height: 1.1;
+        background: linear-gradient(to right, #fff, #93c5fd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 20px;
+      }
+      h2 {
+        font-size: 2.5rem;
+        color: var(--accent);
+        margin-bottom: 30px;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 15px;
+        display: inline-block;
+      }
+      p,
+      li {
+        font-size: 1.2rem;
+        line-height: 1.6;
+        color: #cbd5e1;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        align-items: center;
+        height: 100%;
+      }
+      .content-left {
+        padding-right: 20px;
+      }
+
+      /* Kartu / Kotak Konten */
+      .card {
+        background: var(--glass);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      }
+
+      /* AREA UNTUK GAMBAR (IMAGE PLACEHOLDER) */
+      .image-area {
+        width: 100%;
+        height: 450px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px dashed var(--accent);
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .image-area:hover {
+        border-style: solid;
+        box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+      }
+
+      .image-area img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* Agar gambar pas dalam kotak */
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      .image-caption {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        color: #fff;
+        pointer-events: none;
+      }
+
+      /* Navigasi */
+      .controls {
+        position: absolute;
+        bottom: 30px;
+        right: 50px;
+        display: flex;
+        gap: 20px;
+        z-index: 20;
+      }
+
+      .btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 15px 25px;
+        border-radius: 50px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .btn:hover {
+        background: var(--accent);
+        transform: translateY(-3px);
+      }
+      .btn:disabled {
+        background: #475569;
+        cursor: not-allowed;
+      }
+
+      .progress-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 5px;
+        background: var(--accent);
+        width: 0%;
+        transition: width 0.5s ease;
+      }
+
+      /* Tim Kelompok */
+      .team-grid {
+        display: flex;
+        gap: 20px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+      }
+      .member {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 10px 20px;
+        border-radius: 30px;
+        border: 1px solid var(--accent);
+        font-size: 0.9rem;
+      }
+
+      /* List Styling */
+      ul.check-list {
+        list-style: none;
+      }
+      ul.check-list li {
+        margin-bottom: 15px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      ul.check-list li i {
+        color: var(--accent);
+        margin-top: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="background-animation"></div>
+
+    <div class="slider-container">
+      <!-- SLIDE 1: JUDUL (HOME) -->
+      <div class="slide active">
+        <div style="text-align: center; max-width: 900px; margin: 0 auto">
+          <p
+            style="
+              color: var(--accent);
+              font-weight: 600;
+              letter-spacing: 2px;
+              margin-bottom: 10px;
+            "
+          >
+            UTS WEB & TEXT MINING - KELOMPOK 6
+          </p>
+          <h1>
+            Analisis Sentimen & Pra-pemrosesan Data Ulasan Produk "Clinelle"
+          </h1>
+          <p style="font-size: 1.5rem; margin-top: 20px; color: #94a3b8">
+            Studi Kasus: Platform Tokopedia
+          </p>
+
+          <div class="team-grid" style="justify-content: center">
+            <span class="member">Riski Putra Alamzah</span>
+            <span class="member">Ali Sofyan</span>
+            <span class="member">Gilang Dwi Anggoro</span>
+            <span class="member">Wildan Firdausi Rifa'i</span>
+            <span class="member">Rizki Anas Alfahmi</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 2: PENDAHULUAN -->
+      <div class="slide">
+        <div class="grid-2">
+          <div class="content-left">
+            <h2>Bab 1: Pendahuluan</h2>
+            <div class="card">
+              <h3 style="color: #fff; margin-bottom: 15px">Latar Belakang</h3>
+              <p style="margin-bottom: 20px">
+                Pertumbuhan pesat e-commerce menghasilkan data ulasan yang
+                berharga namun <strong>tidak terstruktur</strong> (banyak slang,
+                singkatan, typo).
+              </p>
+              <h3 style="color: #fff; margin-bottom: 15px">Tujuan Project</h3>
+              <ul class="check-list">
+                <li>
+                  <i class="fas fa-check-circle"></i> Implementasi API Scraping
+                  (Otomatisasi pengambilan data).
+                </li>
+                <li>
+                  <i class="fas fa-check-circle"></i> Preprocessing Lengkap
+                  (Normalisasi bahasa gaul & penanganan negasi).
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div
+            class="card"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              text-align: center;
+            "
+          >
+            <div>
+              <i
+                class="fas fa-search-dollar"
+                style="
+                  font-size: 5rem;
+                  color: var(--accent);
+                  margin-bottom: 20px;
+                "
+              ></i>
+              <h3>Mengapa Tokopedia?</h3>
+              <p>
+                Platform terbesar dengan variasi bahasa ulasan yang sangat
+                beragam (Formal vs Alay).
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 3: METODOLOGI & SUMBER DATA -->
+      <div class="slide">
+        <div class="grid-2">
+          <div class="content-left">
+            <h2>Sumber Data</h2>
+            <ul class="check-list">
+              <li>
+                <strong>Produk:</strong> Clinelle Twin Pack Moisture Glow.
+              </li>
+              <li><strong>Jumlah Data:</strong> > 500 Ulasan.</li>
+              <li>
+                <strong>Alasan:</strong> Data cukup banyak dan mengandung
+                sentimen variatif.
+              </li>
+            </ul>
+            <div
+              class="card"
+              style="margin-top: 20px; background: rgba(6, 182, 212, 0.1)"
+            >
+              <p>
+                <small
+                  >Gambar di samping adalah referensi halaman produk yang
+                  menjadi target scraping kami.</small
+                >
+              </p>
+            </div>
+          </div>
+          <!-- TEMPAT GAMBAR 1.1 -->
+          <div class="image-area">
+            <!-- GANTI 'src' DI BAWAH INI DENGAN LINK GAMBAR ANDA -->
+            <img src="images/1.1.png" alt="Gambar 1.1" />
+            <div class="image-caption">
+              Gambar 1.1: Halaman Produk Tokopedia (Sumber Data)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 4: TEKNIK SCRAPING -->
+      <div class="slide">
+        <div class="grid-2">
+          <!-- TEMPAT GAMBAR 1.2 -->
+          <div class="image-area">
+            <!-- GANTI 'src' DI BAWAH INI DENGAN LINK GAMBAR ANDA -->
+            <img src="images/1.2.png" alt="Gambar 1.2" />
+            <div class="image-caption">
+              Gambar 1.2: Inspeksi Network & Cookies
+            </div>
+          </div>
+          <div class="content-left" style="padding-left: 30px">
+            <h2>Metode API Scraping</h2>
+            <p>
+              Kami tidak menggunakan parsing HTML biasa, melainkan
+              <strong>Reverse Engineering API GraphQL</strong>.
+            </p>
+            <br />
+            <div class="card">
+              <h4 style="color: var(--accent)">
+                Tantangan: Error 403 (Blokir)
+              </h4>
+              <p>Server Tokopedia memblokir bot otomatis.</p>
+              <hr
+                style="
+                  border: 0;
+                  border-top: 1px solid rgba(255, 255, 255, 0.1);
+                  margin: 10px 0;
+                "
+              />
+              <h4 style="color: #a3e635">Solusi: Session Hijacking</h4>
+              <p>
+                Mengambil <code>Cookies</code> dan <code>Headers</code> asli
+                dari browser (Chrome DevTools) lalu menyematkannya ke script
+                Python.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 5: IMPLEMENTASI KODE -->
+      <div class="slide">
+        <div class="grid-2">
+          <div class="content-left">
+            <h2>Implementasi Python</h2>
+            <p>
+              Script scraper dijalankan di Google Colab menggunakan library
+              <code>requests</code>.
+            </p>
+            <ul class="check-list" style="margin-top: 20px">
+              <li>
+                <i class="fas fa-code"></i>
+                <strong>Payload GraphQL:</strong>
+                <p>Meminta data spesifik (rating, text, user).</p>
+              </li>
+              <li>
+                <i class="fas fa-filter"></i>
+                <strong>Filtering:</strong>
+                <p>Menghapus ulasan kosong atau terlalu pendek (< 3 kata).</p>
+              </li>
+              <li>
+                <i class="fas fa-database"></i> <strong>Hasil:</strong> 622 Data
+                berhasil diambil.
+              </li>
+            </ul>
+          </div>
+          <!-- TEMPAT GAMBAR 1.3 -->
+          <div class="image-area">
+            <!-- GANTI 'src' DI BAWAH INI DENGAN LINK GAMBAR ANDA -->
+            <img src="images/1.3.png" alt="Gambar 1.3" />
+            <div class="image-caption">
+              Gambar 1.3: Script Scraper di Google Colab
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 6: EKSPLORASI DATA AWAL -->
+      <div class="slide">
+        <div class="grid-2">
+          <!-- TEMPAT GAMBAR 1.4 / 2.1 -->
+          <div class="image-area">
+            <!-- GANTI 'src' DI BAWAH INI DENGAN LINK GAMBAR ANDA -->
+            <img src="images/histogram.png" alt="Gambar 1.4/2.1" />
+            <div class="image-caption">
+              Gambar 1.4: Statistik Data / Histogram
+            </div>
+          </div>
+          <div class="content-left" style="padding-left: 30px">
+            <h2>Bab 2: Eksplorasi Data</h2>
+            <div class="card">
+              <h3>Kualitas Data Mentah</h3>
+              <br />
+              <ul class="check-list">
+                <li>
+                  <i class="fas fa-check" style="color: #a3e635"></i>
+                  <strong>Missing Values:</strong> 0 (Data bersih dari null).
+                </li>
+                <li>
+                  <i class="fas fa-check" style="color: #a3e635"></i>
+                  <strong>Duplikasi:</strong> 0 (Semua ulasan unik).
+                </li>
+                <li>
+                  <i class="fas fa-align-left"></i>
+                  <strong>Panjang Teks:</strong> Mayoritas 50-150 karakter
+                  (Cukup deskriptif).
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 7: MASALAH PADA DATA MENTAH -->
+      <div class="slide">
+        <div style="text-align: center; margin-bottom: 20px">
+          <h2>Masalah: Dominasi Stopwords</h2>
+          <p>
+            Data mentah masih sangat kotor dan penuh kata sambung yang tidak
+            penting.
+          </p>
+        </div>
+        <!-- TEMPAT GAMBAR 2.2 (WORD CLOUD KOTOR) -->
+        <div class="image-area" style="height: 550px">
+          <!-- GANTI 'src' DI BAWAH INI DENGAN LINK GAMBAR ANDA -->
+          <img src="images/workloud.png" alt="Gambar 2.2" />
+          <div class="image-caption">
+            Gambar 2.2: Word Cloud Data Mentah (Penuh kata "dan", "yang", "di")
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 8: PREPROCESSING STEPS -->
+      <div class="slide">
+        <h2>Bab 3: Text Preprocessing</h2>
+        <div class="grid-2">
+          <div class="card">
+            <h3>Tahapan Pembersihan</h3>
+            <ul class="check-list" style="margin-top: 15px">
+              <li>
+                <strong>1. Case Folding:</strong> Mengubah ke huruf kecil.
+              </li>
+              <li>
+                <strong>2. Cleaning:</strong> Hapus simbol, emoji, dan angka.
+              </li>
+              <li>
+                <strong>3. Normalization:</strong> Menggunakan
+                <em>Kamus Alay</em> untuk membakukan kata (cth: "bgt" ->
+                "sangat").
+              </li>
+              <li>
+                <strong>4. Stemming:</strong> Mengubah ke kata dasar (Sastrawi).
+              </li>
+            </ul>
+          </div>
+          <div
+            class="card"
+            style="
+              border: 2px solid var(--accent);
+              background: rgba(6, 182, 212, 0.1);
+            "
+          >
+            <h3 style="color: var(--accent)">
+              <i class="fas fa-lightbulb"></i> Fitur Unggulan
+            </h3>
+            <p style="margin-top: 10px">
+              Kami memodifikasi daftar Stopwords agar
+              <strong>TIDAK MENGHAPUS</strong> kata negasi seperti
+              <em>"tidak"</em> dan <em>"jangan"</em>.
+            </p>
+            <p style="margin-top: 10px; font-size: 0.9rem; color: #cbd5e1">
+              <em
+                >Alasan: Agar kalimat "tidak iritasi" maknanya tidak berubah
+                menjadi "iritasi".</em
+              >
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 9: KODE PREPROCESSING -->
+      <div class="slide">
+        <div class="grid-2">
+          <div class="content-left">
+            <h2>Implementasi Modular</h2>
+            <p>
+              Kode preprocessing kami pisahkan ke dalam file modul agar rapi dan
+              mudah dikelola.
+            </p>
+            <br />
+            <div class="card">
+              <h4>Komponen Modul:</h4>
+              <ul>
+                <li>Load Kamus Alay (GitHub).</li>
+                <li>Load Sastrawi Stemmer.</li>
+                <li>Custom Stopword List.</li>
+              </ul>
+            </div>
+          </div>
+          <!-- TEMPAT GAMBAR 3.1 -->
+          <div class="image-area">
+            <!-- GANTI 'src' DI BAWAH INI DENGAN LINK GAMBAR ANDA -->
+            <img src="images/3.1.png" alt="Gambar 3.1" />
+            <div class="image-caption">
+              Gambar 3.1: Struktur Kode Modular Preprocessing
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 10: HASIL TRANSFORMASI (TABEL) -->
+      <div class="slide">
+        <h2 style="margin-bottom: 30px">
+          Hasil Transformasi Data (Before vs After)
+        </h2>
+        <!-- TEMPAT TABEL 3.2 (Bisa berupa gambar tabel dari laporan) -->
+        <div class="image-area" style="height: 500px; background: white">
+          <!-- GANTI 'src' DI BAWAH INI DENGAN LINK GAMBAR ANDA -->
+          <img
+            src="images/before-after.png"
+            alt="Tabel 3.2"
+            style="object-fit: contain"
+          />
+          <div class="image-caption" style="color: white; background: black">
+            Tabel 3.2: Contoh Perbandingan Teks Sebelum & Sesudah Proses
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 11: HASIL ANALISIS (WORD CLOUD BERSIH) -->
+      <div class="slide">
+        <div class="grid-2">
+          <!-- TEMPAT GAMBAR 4.1 -->
+          <div class="image-area">
+            <!-- GANTI 'src' DI BAWAH INI DENGAN LINK GAMBAR ANDA -->
+            <img src="images/after.png" alt="Gambar 4.1" />
+            <div class="image-caption">
+              Gambar 4.1: Word Cloud Setelah Preprocessing
+            </div>
+          </div>
+          <div class="content-left" style="padding-left: 30px">
+            <h2>Bab 4: Hasil Analisis</h2>
+            <p>
+              Setelah data dibersihkan, kata kunci sentimen positif terlihat
+              sangat jelas.
+            </p>
+            <br />
+            <div class="card">
+              <h4 style="color: var(--accent)">Kata Dominan:</h4>
+              <ul style="font-size: 1.2rem; margin-top: 10px">
+                <li>✨ Bagus</li>
+                <li>✨ Cocok</li>
+                <li>✨ Pakai</li>
+                <li>✨ Kulit</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 12: STATISTIK KATA -->
+      <div class="slide">
+        <div class="grid-2">
+          <div class="content-left">
+            <h2>Statistik Frekuensi</h2>
+            <p>
+              Grafik menunjukkan 20 kata yang paling sering muncul setelah
+              pembersihan.
+            </p>
+            <br />
+            <div class="card">
+              <h4>Insight:</h4>
+              <p>
+                Kata "Tidak" juga muncul cukup tinggi. Ini membuktikan bahwa
+                strategi <em>Negative Handling</em> kami berhasil menjaga
+                konteks kalimat negatif.
+              </p>
+            </div>
+          </div>
+          <!-- TEMPAT GAMBAR 4.2 / 4.3 -->
+          <div class="image-area">
+            <!-- GANTI 'src' DI BAWAH INI DENGAN LINK GAMBAR ANDA -->
+            <img src="images/grafik.png" alt="Gambar 4.2" />
+            <div class="image-caption">Gambar 4.2: Grafik 20 Kata Teratas</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 13: KESIMPULAN -->
+      <div class="slide">
+        <div style="text-align: center; max-width: 800px; margin: 0 auto">
+          <h2>Bab 5: Kesimpulan</h2>
+          <div class="grid-2" style="gap: 30px; margin-top: 40px">
+            <div class="card">
+              <i
+                class="fas fa-robot"
+                style="
+                  font-size: 3rem;
+                  color: var(--accent);
+                  margin-bottom: 20px;
+                "
+              ></i>
+              <h3>Teknik Scraping</h3>
+              <p>
+                API Scraping dengan Session Cookies terbukti stabil dan mampu
+                mengambil data besar tanpa terblokir.
+              </p>
+            </div>
+            <div class="card">
+              <i
+                class="fas fa-spell-check"
+                style="
+                  font-size: 3rem;
+                  color: var(--accent);
+                  margin-bottom: 20px;
+                "
+              ></i>
+              <h3>Preprocessing</h3>
+              <p>
+                Kamus Normalisasi & Penanganan Negasi sangat krusial untuk
+                menjaga makna sentimen pada ulasan bahasa Indonesia.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLIDE 14: PENUTUP -->
+      <div class="slide">
+        <div style="text-align: center">
+          <h1 style="font-size: 5rem; margin-bottom: 20px">TERIMA KASIH</h1>
+          <p style="font-size: 1.5rem; color: var(--accent)">
+            Kelompok 6 - Web & Text Mining
+          </p>
+          <div style="margin-top: 50px">
+            <button
+              class="btn"
+              onclick="location.reload()"
+              style="
+                margin: 0 auto;
+                background: transparent;
+                border: 2px solid white;
+              "
+            >
+              <i class="fas fa-redo"></i> Ulangi Presentasi
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="controls">
+      <button class="btn" id="prevBtn" onclick="changeSlide(-1)">
+        <i class="fas fa-chevron-left"></i> Prev
+      </button>
+      <button class="btn" id="nextBtn" onclick="changeSlide(1)">
+        Next <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <script>
+      let currentSlide = 0;
+      const slides = document.querySelectorAll(".slide");
+      const progressBar = document.getElementById("progressBar");
+      const totalSlides = slides.length;
+
+      function updateProgress() {
+        const progress = ((currentSlide + 1) / totalSlides) * 100;
+        progressBar.style.width = progress + "%";
+      }
+
+      function changeSlide(direction) {
+        slides[currentSlide].classList.remove("active");
+
+        currentSlide += direction;
+
+        if (currentSlide >= totalSlides) {
+          currentSlide = 0; // Loop back to start
+        } else if (currentSlide < 0) {
+          currentSlide = totalSlides - 1; // Loop to end
+        }
+
+        slides[currentSlide].classList.add("active");
+        updateProgress();
+      }
+
+      // Keyboard Navigation
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " ") {
+          changeSlide(1);
+        } else if (e.key === "ArrowLeft") {
+          changeSlide(-1);
+        }
+      });
+
+      // Initialize
+      updateProgress();
+    </script>
+  </body>
+</html>
